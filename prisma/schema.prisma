@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuarios {
+  id                         Int                         @id @default(autoincrement())
+  usuario                    String                      @unique @db.VarChar(30)
+  apellido                   String                      @db.VarChar(50)
+  nombre                     String                      @db.VarChar(50)
+  dni                        String                      @db.VarChar(30)
+  password                   String
+  email                      String                      @db.VarChar(50)
+  role                       String?                     @default("ADMIN_ROLE")
+  activo                     Boolean?                    @default(true)
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  Encuestas                  Encuestas[]
+  Personas                   Personas[]
+  Preguntas                  Preguntas[]
+  Respuestas                 Respuestas[]
+  PreguntasRespondidas       PreguntasRespondidas[]
+  EncuestasActivacion        EncuestasActivacion[]
+  encuestasToUsuarios        EncuestasToUsuarios[]
+  encuestasRespondidas       EncuestasRespondidas[]
+  personaEncuestaRespondidas PersonaEncuestaRespondida[]
+  barrios                    Barrios[]
+}
+
+model Personas {
+  id            Int      @id @default(autoincrement())
+  apellido      String   @db.VarChar(100)
+  nombre        String   @db.VarChar(100)
+  mail          String?  @default("") @db.VarChar(100)
+  telefono      String?  @default("") @db.VarChar(100)
+  domicilio     String?  @default("") @db.VarChar(255)
+  dni           String?  @default("") @db.VarChar(30)
+  activo        Boolean? @default(true)
+  creatorUserId Int      @db.Int
+  creatorUser   Usuarios @relation(fields: [creatorUserId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PersonaEncuestaRespondida {
+  id                   Int                  @id @default(autoincrement())
+  encuestaRespondidaId Int                  @db.Int
+  encuestaRespondida   EncuestasRespondidas @relation(fields: [encuestaRespondidaId], references: [id])
+  email                String?              @default("")
+  rangoEdad            String?              @default("18-25")
+  sigem                Boolean?             @default(false)
+  barrioId             Int                  @db.Int
+  barrio               Barrios              @relation(fields: [barrioId], references: [id])
+  genero               String?              @default("Masculino")
+  telefono             String?              @default("")
+  activo               Boolean?             @default(true)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  creatorUserId        Int                  @db.Int
+  creatorUser          Usuarios             @relation(fields: [creatorUserId], references: [id])
+}
+
+model Encuestas {
+  id                   Int                    @id @default(autoincrement())
+  titulo               String                 @db.VarChar(255)
+  descripcion          String?                @default("") @db.VarChar(255)
+  estado               String?                @default("Inactiva") @db.VarChar(100)
+  activo               Boolean?               @default(true)
+  creatorUserId        Int                    @db.Int
+  creatorUser          Usuarios               @relation(fields: [creatorUserId], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  Preguntas            Preguntas[]
+  Respuestas           Respuestas[]
+  PreguntasRespondidas PreguntasRespondidas[]
+  EncuestasActivacion  EncuestasActivacion[]
+  encuestasToUsuarios  EncuestasToUsuarios[]
+  encuestasRespondidas EncuestasRespondidas[]
+}
+
+model Preguntas {
+  id                   Int                    @id @default(autoincrement())
+  encuestaId           Int                    @db.Int
+  descripcion          String                 @db.VarChar(255)
+  orden                Int                    @default(0)
+  creatorUserId        Int                    @db.Int
+  activo               Boolean?               @default(true)
+  encuesta             Encuestas              @relation(fields: [encuestaId], references: [id])
+  creatorUser          Usuarios               @relation(fields: [creatorUserId], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  Respuestas           Respuestas[]
+  PreguntasRespondidas PreguntasRespondidas[]
+}
+
+model Respuestas {
+  id                   Int                    @id @default(autoincrement())
+  encuestaId           Int                    @db.Int
+  preguntaId           Int                    @db.Int
+  orden                Int                    @default(0)
+  descripcion          String                 @db.VarChar(255)
+  activo               Boolean?               @default(true)
+  creatorUserId        Int                    @db.Int
+  encuesta             Encuestas              @relation(fields: [encuestaId], references: [id])
+  pregunta             Preguntas              @relation(fields: [preguntaId], references: [id])
+  creatorUser          Usuarios               @relation(fields: [creatorUserId], references: [id])
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  PreguntasRespondidas PreguntasRespondidas[]
+}
+
+model EncuestasRespondidas {
+  id                         Int                         @id @default(autoincrement())
+  encuestaId                 Int                         @db.Int
+  encuesta                   Encuestas                   @relation(fields: [encuestaId], references: [id])
+  creatorUserId              Int                         @db.Int
+  creatorUser                Usuarios                    @relation(fields: [creatorUserId], references: [id])
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  PreguntasRespondidas       PreguntasRespondidas[]
+  personaEncuestaRespondidas PersonaEncuestaRespondida[]
+}
+
+model PreguntasRespondidas {
+  id                   Int                  @id @default(autoincrement())
+  encuestaId           Int                  @db.Int
+  preguntaId           Int                  @db.Int
+  respuestaId          Int                  @db.Int
+  encuestaRespondidaId Int                  @db.Int
+  encuestaRespondida   EncuestasRespondidas @relation(fields: [encuestaRespondidaId], references: [id])
+  creatorUserId        Int                  @db.Int
+  creatorUser          Usuarios             @relation(fields: [creatorUserId], references: [id])
+  encuesta             Encuestas            @relation(fields: [encuestaId], references: [id])
+  pregunta             Preguntas            @relation(fields: [preguntaId], references: [id])
+  respuesta            Respuestas           @relation(fields: [respuestaId], references: [id])
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+}
+
+model EncuestasActivacion {
+  id            Int       @id @default(autoincrement())
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  encuestaId    Int       @db.Int
+  encuesta      Encuestas @relation(fields: [encuestaId], references: [id])
+  activo        Boolean?  @default(true)
+  creatorUserId Int       @db.Int
+  creatorUser   Usuarios  @relation(fields: [creatorUserId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model EncuestasToUsuarios {
+  id         Int       @id @default(autoincrement())
+  encuestaId Int       @db.Int
+  encuesta   Encuestas @relation(fields: [encuestaId], references: [id])
+  usuarioId  Int       @db.Int
+  usuario    Usuarios  @relation(fields: [usuarioId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Barrios {
+  id                         Int                         @id @default(autoincrement())
+  descripcion                String                      @db.VarChar(100)
+  activo                     Boolean?                    @default(true)
+  creatorUserId              Int
+  creatorUser                Usuarios                    @relation(fields: [creatorUserId], references: [id])
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  CoordenadasToBarrio        CoordenadasToBarrio[]
+  personaEncuestaRespondidas PersonaEncuestaRespondida[]
+}
+
+model CoordenadasToBarrio {
+  id       Int     @id @default(autoincrement())
+  orden    Int
+  lat      Float
+  lng      Float
+  barrioId Int
+  barrio   Barrios @relation(fields: [barrioId], references: [id])
+}

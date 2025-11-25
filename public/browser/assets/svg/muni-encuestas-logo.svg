@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <!-- Gradientes azules y verdes modernos -->
+    <linearGradient id="gradPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0369a1;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradSecondary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7dd3fc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0ea5e9;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="gradBackground" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#f0fdfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0f2fe;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- Sombras suaves -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fondo con gradiente radial -->
+  <circle cx="120" cy="120" r="110" fill="url(#gradBackground)"/>
+
+  <!-- Anillos decorativos concéntricos -->
+  <circle cx="120" cy="120" r="105" fill="none" stroke="#0ea5e9" stroke-width="1" opacity="0.15"/>
+  <circle cx="120" cy="120" r="100" fill="none" stroke="#10b981" stroke-width="1" opacity="0.15"/>
+
+  <!-- Edificio Municipal Moderno con sombra -->
+  <g id="edificio-moderno" filter="url(#shadow)">
+    <!-- Columnas con perspectiva y profundidad -->
+    <rect x="75" y="102" width="14" height="83" rx="2" fill="url(#gradPrimary)" opacity="0.85"/>
+    <rect x="95" y="97" width="14" height="88" rx="2" fill="url(#gradPrimary)"/>
+    <rect x="115" y="92" width="14" height="93" rx="2" fill="url(#gradPrimary)" opacity="0.85"/>
+    <rect x="135" y="97" width="14" height="88" rx="2" fill="url(#gradPrimary)"/>
+    <rect x="155" y="102" width="14" height="83" rx="2" fill="url(#gradPrimary)" opacity="0.85"/>
+
+    <!-- Detalles de luz en columnas -->
+    <rect x="77" y="104" width="3" height="79" rx="1" fill="#7dd3fc" opacity="0.4"/>
+    <rect x="117" y="94" width="3" height="89" rx="1" fill="#7dd3fc" opacity="0.4"/>
+    <rect x="157" y="104" width="3" height="79" rx="1" fill="#7dd3fc" opacity="0.4"/>
+
+    <!-- Base sólida con gradiente -->
+    <rect x="68" y="185" width="108" height="10" rx="2" fill="url(#gradSecondary)"/>
+    <rect x="68" y="185" width="108" height="3" rx="1" fill="#34d399" opacity="0.5"/>
+
+    <!-- Frontón triangular elegante -->
+    <path d="M 62 100 L 122 62 L 182 100 L 173 100 L 122 72 L 71 100 Z" fill="url(#gradSecondary)"/>
+
+    <!-- Detalle de profundidad del frontón -->
+    <path d="M 122 62 L 182 100 L 178 100 L 122 68 Z" fill="#059669" opacity="0.3"/>
+
+    <!-- Escudo municipal moderno -->
+    <g id="escudo">
+      <ellipse cx="122" cy="82" rx="11" ry="13" fill="#0284c7" opacity="0.9"/>
+      <path d="M 122 75 L 126 79 L 134 70" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Clipboard de encuesta moderno con sombra -->
+  <g id="clipboard" filter="url(#shadow)">
+    <!-- Clip superior metálico -->
+    <rect x="38" y="45" width="34" height="10" rx="5" fill="#0369a1"/>
+    <rect x="45" y="48" width="20" height="7" rx="3.5" fill="#7dd3fc"/>
+    <ellipse cx="55" cy="51.5" rx="3" ry="2" fill="#bae6fd" opacity="0.6"/>
+
+    <!-- Tablero/Papel con sombra interior -->
+    <rect x="33" y="50" width="74" height="100" rx="7" fill="#ffffff"/>
+    <rect x="33" y="50" width="74" height="100" rx="7" fill="none" stroke="url(#gradPrimary)" stroke-width="3.5"/>
+
+    <!-- Líneas de formulario con checks elegantes -->
+    <g id="form-lines">
+      <!-- Línea 1 - Checked con efecto -->
+      <circle cx="48" cy="75" r="9" fill="#a7f3d0" opacity="0.3"/>
+      <circle cx="48" cy="75" r="8" fill="url(#gradSecondary)" opacity="0.15"/>
+      <path d="M 44 75 L 47 78 L 53 70" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="62" y="72" width="36" height="4" rx="2" fill="#bfdbfe"/>
+
+      <!-- Línea 2 - Checked con efecto -->
+      <circle cx="48" cy="98" r="9" fill="#a7f3d0" opacity="0.3"/>
+      <circle cx="48" cy="98" r="8" fill="url(#gradSecondary)" opacity="0.15"/>
+      <path d="M 44 98 L 47 101 L 53 93" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="62" y="95" width="32" height="4" rx="2" fill="#bfdbfe"/>
+
+      <!-- Línea 3 - Checked con efecto -->
+      <circle cx="48" cy="121" r="9" fill="#a7f3d0" opacity="0.3"/>
+      <circle cx="48" cy="121" r="8" fill="url(#gradSecondary)" opacity="0.15"/>
+      <path d="M 44 121 L 47 124 L 53 116" stroke="#10b981" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="62" y="118" width="30" height="4" rx="2" fill="#bfdbfe"/>
+
+      <!-- Línea 4 - Empty -->
+      <circle cx="48" cy="138" r="7.5" fill="none" stroke="#93c5fd" stroke-width="2.5"/>
+      <rect x="62" y="135" width="34" height="4" rx="2" fill="#dbeafe"/>
+    </g>
+  </g>
+
+  <!-- Gráfico de barras moderno (representa análisis de datos) -->
+  <g id="analytics" filter="url(#shadow)">
+    <!-- Barra 1 -->
+    <rect x="165" y="140" width="10" height="25" rx="2" fill="url(#gradSecondary)"/>
+    <rect x="165" y="140" width="3" height="25" rx="1" fill="#34d399" opacity="0.5"/>
+
+    <!-- Barra 2 -->
+    <rect x="178" y="130" width="10" height="35" rx="2" fill="url(#gradPrimary)"/>
+    <rect x="178" y="130" width="3" height="35" rx="1" fill="#7dd3fc" opacity="0.5"/>
+
+    <!-- Barra 3 -->
+    <rect x="191" y="145" width="10" height="20" rx="2" fill="url(#gradAccent)"/>
+    <rect x="191" y="145" width="3" height="20" rx="1" fill="#5eead4" opacity="0.5"/>
+
+    <!-- Línea base -->
+    <rect x="163" y="165" width="40" height="2" rx="1" fill="#0369a1" opacity="0.4"/>
+  </g>
+
+  <!-- Decoraciones con íconos de estadísticas -->
+  <g id="decorations" opacity="0.5">
+    <!-- Grupo superior derecho -->
+    <circle cx="192" cy="75" r="4" fill="#0ea5e9"/>
+    <circle cx="203" cy="88" r="2.5" fill="#10b981"/>
+    <circle cx="187" cy="95" r="3" fill="#14b8a6"/>
+
+    <!-- Grupo inferior izquierdo -->
+    <circle cx="32" cy="175" r="4" fill="#10b981"/>
+    <circle cx="23" cy="160" r="2.5" fill="#0ea5e9"/>
+    <circle cx="42" cy="188" r="3" fill="#14b8a6"/>
+
+    <!-- Líneas conectoras sutiles -->
+    <line x1="192" y1="75" x2="203" y2="88" stroke="#0ea5e9" stroke-width="1" opacity="0.3"/>
+    <line x1="32" y1="175" x2="23" y2="160" stroke="#10b981" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <!-- Marca de agua sutil -->
+  <text x="120" y="215" text-anchor="middle" fill="#0369a1" opacity="0.1" font-size="14" font-weight="bold" font-family="Arial, sans-serif">MUNICIPAL</text>
+</svg>
