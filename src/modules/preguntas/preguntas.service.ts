@@ -126,6 +126,7 @@ export class PreguntasService {
         let preguntaDB: any = await this.prisma.preguntas.create({
             data: {
                 descripcion: createData.descripcion,
+                multiplesRespuestas: createData.multiplesRespuestas !== undefined ? createData.multiplesRespuestas : false,
                 encuestaId: createData.encuestaId,
                 creatorUserId: createData.creatorUserId,
                 orden: ordenPregunta,

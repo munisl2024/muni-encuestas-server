@@ -155,12 +155,14 @@ export class EncuestasController {
       datosPersonales?: { email: string; sigem: boolean; genero: string; telefono: string; rangoEdad: string; barrioId: number };
     }
   ): Promise<any> {
+    
     const encuestaRespondida = await this.encuestasService.responderEncuesta(
       Number(encuestaId),
       Number(body.usuarioId),
       body.respuestas,
       body.datosPersonales
     );
+
     return res.status(HttpStatus.CREATED).json({
       success: true,
       message: 'Encuesta respondida correctamente',
