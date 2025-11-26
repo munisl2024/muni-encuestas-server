@@ -16,9 +16,7 @@ export class EncuestasService {
                 creatorUser: true,
                 Preguntas: {
                     include: {
-                        Respuestas: {
-                            where: { activo: true }
-                        },
+                        Respuestas: true,
                     },
                     orderBy: { orden: 'asc' }
                 },
@@ -310,6 +308,7 @@ export class EncuestasService {
                 return {
                     preguntaId: pregunta.id,
                     pregunta: pregunta.descripcion,
+                    multiplesRespuestas: pregunta.multiplesRespuestas,
                     totalVotos,
                     respuestas: respuestasConConteo.map(r => ({
                         ...r,
@@ -609,9 +608,11 @@ export class EncuestasService {
     async responderEncuesta(
         encuestaId: number,
         usuarioId: number,
-        respuestas: Array<{ preguntaId: number; respuestaId: number }>,
+        respuestas: any,
         datosPersonales?: { email: string; sigem: boolean; genero: string; telefono: string; rangoEdad: string; barrioId: number }
     ): Promise<any> {
+
+        console.log(respuestas);
 
         // Validar que la encuesta existe
         const encuesta = await this.prisma.encuestas.findFirst({
@@ -640,14 +641,33 @@ export class EncuestasService {
 
         // Validar que todas las respuestas pertenecen a preguntas de esta encuesta
         for (const resp of respuestas) {
+            
             const pregunta = encuesta.Preguntas.find(p => p.id === resp.preguntaId);
             if (!pregunta) {
                 throw new NotFoundException(`La pregunta ${resp.preguntaId} no pertenece a esta encuesta`);
             }
 
-            const respuestaValida = pregunta.Respuestas.find(r => r.id === resp.respuestaId);
-            if (!respuestaValida) {
-                throw new NotFoundException(`La respuesta ${resp.respuestaId} no pertenece a la pregunta ${resp.preguntaId}`);
+            // Validar que respuestaIds no esté vacío
+            if (!resp.respuestaIds || resp.respuestaIds.length === 0) {
+                throw new NotFoundException(`Debes seleccionar al menos una respuesta para la pregunta ${resp.preguntaId}`);
+            }
+
+            // Validar que si la pregunta NO permite múltiples respuestas, solo se envíe una
+            if (!pregunta.multiplesRespuestas && resp.respuestaIds.length > 1) {
+                throw new NotFoundException(`La pregunta ${resp.preguntaId} solo permite seleccionar una respuesta`);
+            }
+
+            // Validar que todas las respuestaIds pertenecen a esta pregunta
+            for (const respuestaId of resp.respuestaIds) {
+                // Validar que respuestaId no sea null, undefined o inválido
+                if (respuestaId === undefined || respuestaId === null || isNaN(respuestaId)) {
+                    throw new NotFoundException(`Se recibió un ID de respuesta inválido (${respuestaId}) para la pregunta ${resp.preguntaId}. Por favor recarga la página e intenta nuevamente.`);
+                }
+
+                const respuestaValida = pregunta.Respuestas.find(r => r.id === respuestaId);
+                if (!respuestaValida) {
+                    throw new NotFoundException(`La respuesta ${respuestaId} no pertenece a la pregunta ${resp.preguntaId} (${pregunta.descripcion})`);
+                }
             }
         }
 
@@ -685,23 +705,28 @@ export class EncuestasService {
             }
 
             // 3. Crear todos los registros de PreguntasRespondidas
-            const preguntasRespondidas = await Promise.all(
-                respuestas.map(resp =>
-                    prisma.preguntasRespondidas.create({
-                        data: {
-                            encuestaId,
-                            preguntaId: resp.preguntaId,
-                            respuestaId: resp.respuestaId,
-                            encuestaRespondidaId: encuestaResp.id,
-                            creatorUserId: usuarioId
-                        },
-                        include: {
-                            pregunta: true,
-                            respuesta: true
-                        }
-                    })
-                )
-            );
+            // Si una pregunta tiene múltiples respuestas, se crea un registro por cada una
+            const preguntasRespondidasPromises: Promise<any>[] = [];
+            for (const resp of respuestas) {
+                for (const respuestaId of resp.respuestaIds) {
+                    preguntasRespondidasPromises.push(
+                        prisma.preguntasRespondidas.create({
+                            data: {
+                                encuestaId,
+                                preguntaId: resp.preguntaId,
+                                respuestaId: respuestaId,
+                                encuestaRespondidaId: encuestaResp.id,
+                                creatorUserId: usuarioId
+                            },
+                            include: {
+                                pregunta: true,
+                                respuesta: true
+                            }
+                        })
+                    );
+                }
+            }
+            const preguntasRespondidas = await Promise.all(preguntasRespondidasPromises);
 
             // 4. Retornar la encuesta respondida completa
             return {
