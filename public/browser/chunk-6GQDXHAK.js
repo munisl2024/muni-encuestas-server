@@ -1,2 +1,0 @@
-import{$ as n,Bb as a,Jb as i,kb as o,lb as r}from"./chunk-GYUG5PKY.js";var m=(()=>{class e{constructor(){}ngOnInit(){}static{this.\u0275fac=function(t){return new(t||e)}}static{this.\u0275cmp=n({type:e,selectors:[["app-error-page"]],standalone:!0,features:[i],decls:2,vars:0,template:function(t,s){t&1&&(o(0,"p"),a(1,` error-page works!
-`),r())},encapsulation:2})}}return e})();export{m as default};

@@ -1,1 +1,0 @@
-import{T as o}from"./chunk-GYUG5PKY.js";var e=(()=>{class t{constructor(){this.ubicacionActual="Dashboard",this.showMenu=!1}static{this.\u0275fac=function(r){return new(r||t)}}static{this.\u0275prov=o({token:t,factory:t.\u0275fac,providedIn:"root"})}}return t})();export{e as a};
