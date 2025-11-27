@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import PdfPrinter = require('pdfmake');
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 @Injectable()
 export class ReportesService {
@@ -437,5 +439,697 @@ export class ReportesService {
         },
       },
     };
+  }
+
+  /**
+   * Genera un PDF con el reporte completo de la encuesta
+   */
+  async generarPDFReporte(
+    encuestaId: number,
+    fechaInicio?: string,
+    fechaFin?: string,
+  ): Promise<Buffer> {
+    // Obtener todas las estadísticas
+    const resultado = await this.obtenerEstadisticasCompletas(
+      encuestaId,
+      fechaInicio,
+      fechaFin,
+    );
+
+    const { data } = resultado;
+    const {
+      encuesta,
+      estadisticasGenerales,
+      distribucionPreguntas,
+      datosdemograficos,
+      tendenciaTemporal,
+      filtros,
+    } = data;
+
+    // Configurar fuentes para pdfmake
+    const fonts = {
+      Roboto: {
+        normal: 'Helvetica',
+        bold: 'Helvetica-Bold',
+        italics: 'Helvetica-Oblique',
+        bolditalics: 'Helvetica-BoldOblique',
+      },
+    };
+
+    // Definir el documento PDF
+    const docDefinition: any = {
+      content: [
+        // Encabezado con banner
+        {
+          canvas: [
+            {
+              type: 'rect',
+              x: 0,
+              y: 0,
+              w: 515,
+              h: 100,
+              linearGradient: ['#667EEA', '#764BA2'],
+            },
+          ],
+          absolutePosition: { x: 40, y: 40 },
+        },
+        {
+          text: 'REPORTE DE ENCUESTA',
+          style: 'header',
+          alignment: 'center',
+          color: 'white',
+          margin: [0, 50, 0, 5],
+        },
+        {
+          text: encuesta.titulo.toUpperCase(),
+          style: 'titleEncuesta',
+          alignment: 'center',
+          color: 'white',
+          margin: [0, 0, 0, 15],
+        },
+
+        // Filtros aplicados
+        ...(filtros.fechaInicio || filtros.fechaFin
+          ? [
+              {
+                table: {
+                  widths: ['*'],
+                  body: [
+                    [
+                      {
+                        text: [
+                          {
+                            text: 'Período del reporte: ',
+                            style: 'subsectionHeader',
+                          },
+                          {
+                            text: `${filtros.fechaInicio || '...'} al ${filtros.fechaFin || '...'}`,
+                            style: 'normalText',
+                          },
+                        ],
+                        fillColor: '#F3F4F6',
+                        margin: [10, 10, 10, 10],
+                      },
+                    ],
+                  ],
+                },
+                layout: {
+                  hLineWidth: () => 0,
+                  vLineWidth: () => 0,
+                },
+                margin: [0, 0, 0, 20],
+              },
+            ]
+          : []),
+
+        // Estadísticas Generales
+        {
+          text: 'ESTADÍSTICAS GENERALES',
+          style: 'sectionHeader',
+          margin: [0, 0, 0, 15],
+        },
+        // Tarjetas de métricas principales (3 columnas)
+        {
+          columns: [
+            {
+              width: '*',
+              table: {
+                widths: ['*'],
+                body: [
+                  [
+                    {
+                      stack: [
+                        {
+                          text: estadisticasGenerales.totalRespuestas.toString(),
+                          style: 'metricNumber',
+                          color: '#3B82F6',
+                        },
+                        {
+                          text: 'Encuestas Respondidas',
+                          style: 'metricLabel',
+                        },
+                      ],
+                      fillColor: '#EFF6FF',
+                      margin: [10, 15, 10, 15],
+                      alignment: 'center',
+                    },
+                  ],
+                ],
+              },
+              layout: {
+                hLineWidth: () => 1,
+                vLineWidth: () => 1,
+                hLineColor: () => '#3B82F6',
+                vLineColor: () => '#3B82F6',
+              },
+            },
+            {
+              width: '*',
+              table: {
+                widths: ['*'],
+                body: [
+                  [
+                    {
+                      stack: [
+                        {
+                          text: estadisticasGenerales.totalPreguntas.toString(),
+                          style: 'metricNumber',
+                          color: '#10B981',
+                        },
+                        {
+                          text: 'Total Preguntas',
+                          style: 'metricLabel',
+                        },
+                      ],
+                      fillColor: '#ECFDF5',
+                      margin: [10, 15, 10, 15],
+                      alignment: 'center',
+                    },
+                  ],
+                ],
+              },
+              layout: {
+                hLineWidth: () => 1,
+                vLineWidth: () => 1,
+                hLineColor: () => '#10B981',
+                vLineColor: () => '#10B981',
+              },
+            },
+            {
+              width: '*',
+              table: {
+                widths: ['*'],
+                body: [
+                  [
+                    {
+                      stack: [
+                        {
+                          text: estadisticasGenerales.totalPreguntasRespondidas.toString(),
+                          style: 'metricNumber',
+                          color: '#F59E0B',
+                        },
+                        {
+                          text: 'Preguntas Respondidas',
+                          style: 'metricLabel',
+                        },
+                      ],
+                      fillColor: '#FFFBEB',
+                      margin: [10, 15, 10, 15],
+                      alignment: 'center',
+                    },
+                  ],
+                ],
+              },
+              layout: {
+                hLineWidth: () => 1,
+                vLineWidth: () => 1,
+                hLineColor: () => '#F59E0B',
+                vLineColor: () => '#F59E0B',
+              },
+            },
+          ],
+          columnGap: 10,
+          margin: [0, 0, 0, 15],
+        },
+
+        // Datos Demográficos
+        {
+          text: 'DATOS DEMOGRÁFICOS',
+          style: 'sectionHeader',
+          pageBreak: 'before',
+          margin: [0, 0, 0, 10],
+        },
+        {
+          table: {
+            widths: ['*'],
+            body: [
+              [
+                {
+                  text: `Total de Participantes: ${datosdemograficos.totalParticipantes}`,
+                  style: 'subsectionHeader',
+                  fillColor: '#EFF6FF',
+                  color: '#1E40AF',
+                  margin: [10, 10, 10, 10],
+                  alignment: 'center',
+                },
+              ],
+            ],
+          },
+          layout: 'noBorders',
+          margin: [0, 0, 0, 15],
+        },
+
+        // Distribución por Género
+        {
+          text: 'Distribución por Género',
+          style: 'subsectionHeader',
+          margin: [0, 5, 0, 8],
+        },
+        {
+          table: {
+            widths: ['*', 'auto', 'auto'],
+            headerRows: 1,
+            body: [
+              [
+                {
+                  text: 'Género',
+                  style: 'tableHeader',
+                  fillColor: '#10B981',
+                  color: 'white',
+                },
+                {
+                  text: 'Cantidad',
+                  style: 'tableHeader',
+                  fillColor: '#10B981',
+                  color: 'white',
+                },
+                {
+                  text: 'Porcentaje',
+                  style: 'tableHeader',
+                  fillColor: '#10B981',
+                  color: 'white',
+                },
+              ],
+              ...datosdemograficos.distribucionGenero.map((g) => [
+                g.genero,
+                { text: g.cantidad.toString(), alignment: 'center' },
+                { text: `${g.porcentaje}%`, alignment: 'center', bold: true },
+              ]),
+            ],
+          },
+          layout: {
+            hLineWidth: (i, node) => (i === 0 || i === node.table.body.length ? 0 : 1),
+            vLineWidth: () => 0,
+            hLineColor: () => '#E5E7EB',
+            paddingLeft: () => 10,
+            paddingRight: () => 10,
+            paddingTop: () => 8,
+            paddingBottom: () => 8,
+          },
+          margin: [0, 0, 0, 15],
+        },
+
+        // Distribución por Edad
+        {
+          text: 'Distribución por Rango de Edad',
+          style: 'subsectionHeader',
+          margin: [0, 5, 0, 8],
+        },
+        {
+          table: {
+            widths: ['*', 'auto', 'auto'],
+            headerRows: 1,
+            body: [
+              [
+                {
+                  text: 'Rango de Edad',
+                  style: 'tableHeader',
+                  fillColor: '#F59E0B',
+                  color: 'white',
+                },
+                {
+                  text: 'Cantidad',
+                  style: 'tableHeader',
+                  fillColor: '#F59E0B',
+                  color: 'white',
+                },
+                {
+                  text: 'Porcentaje',
+                  style: 'tableHeader',
+                  fillColor: '#F59E0B',
+                  color: 'white',
+                },
+              ],
+              ...datosdemograficos.distribucionEdad.map((e) => [
+                e.rango,
+                { text: e.cantidad.toString(), alignment: 'center' },
+                { text: `${e.porcentaje}%`, alignment: 'center', bold: true },
+              ]),
+            ],
+          },
+          layout: {
+            hLineWidth: (i, node) => (i === 0 || i === node.table.body.length ? 0 : 1),
+            vLineWidth: () => 0,
+            hLineColor: () => '#E5E7EB',
+            paddingLeft: () => 10,
+            paddingRight: () => 10,
+            paddingTop: () => 8,
+            paddingBottom: () => 8,
+          },
+          margin: [0, 0, 0, 15],
+        },
+
+        // SIGEM
+        {
+          text: 'Distribución SIGEM',
+          style: 'subsectionHeader',
+          margin: [0, 5, 0, 8],
+        },
+        {
+          table: {
+            widths: ['*', 'auto', 'auto'],
+            headerRows: 1,
+            body: [
+              [
+                {
+                  text: 'SIGEM',
+                  style: 'tableHeader',
+                  fillColor: '#8B5CF6',
+                  color: 'white',
+                },
+                {
+                  text: 'Cantidad',
+                  style: 'tableHeader',
+                  fillColor: '#8B5CF6',
+                  color: 'white',
+                },
+                {
+                  text: 'Porcentaje',
+                  style: 'tableHeader',
+                  fillColor: '#8B5CF6',
+                  color: 'white',
+                },
+              ],
+              [
+                'Sí',
+                { text: datosdemograficos.sigem.si.toString(), alignment: 'center' },
+                {
+                  text: `${datosdemograficos.sigem.porcentajeSi}%`,
+                  alignment: 'center',
+                  bold: true,
+                },
+              ],
+              [
+                'No',
+                { text: datosdemograficos.sigem.no.toString(), alignment: 'center' },
+                {
+                  text: `${datosdemograficos.sigem.porcentajeNo}%`,
+                  alignment: 'center',
+                  bold: true,
+                },
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: (i, node) => (i === 0 || i === node.table.body.length ? 0 : 1),
+            vLineWidth: () => 0,
+            hLineColor: () => '#E5E7EB',
+            paddingLeft: () => 10,
+            paddingRight: () => 10,
+            paddingTop: () => 8,
+            paddingBottom: () => 8,
+          },
+          margin: [0, 0, 0, 20],
+        },
+
+        // Distribución de Respuestas por Pregunta
+        {
+          text: 'DISTRIBUCIÓN DE RESPUESTAS POR PREGUNTA',
+          style: 'sectionHeader',
+          pageBreak: 'before',
+          margin: [0, 0, 0, 15],
+        },
+        ...distribucionPreguntas.flatMap((pregunta, index) => [
+          {
+            table: {
+              widths: ['*'],
+              body: [
+                [
+                  {
+                    text: `Pregunta ${pregunta.orden}: ${pregunta.descripcion}`,
+                    style: 'subsectionHeader',
+                    fillColor: '#F3F4F6',
+                    color: '#374151',
+                    margin: [10, 10, 10, 5],
+                  },
+                ],
+                [
+                  {
+                    text: `Total de votos: ${pregunta.totalVotos}`,
+                    fontSize: 9,
+                    color: '#6B7280',
+                    margin: [10, 5, 10, 10],
+                  },
+                ],
+              ],
+            },
+            layout: 'noBorders',
+            margin: [0, index > 0 ? 10 : 0, 0, 8],
+          },
+          {
+            table: {
+              widths: ['*', 'auto', 'auto'],
+              headerRows: 1,
+              body: [
+                [
+                  {
+                    text: 'Respuesta',
+                    style: 'tableHeader',
+                    fillColor: '#3B82F6',
+                    color: 'white',
+                  },
+                  {
+                    text: 'Votos',
+                    style: 'tableHeader',
+                    fillColor: '#3B82F6',
+                    color: 'white',
+                  },
+                  {
+                    text: 'Porcentaje',
+                    style: 'tableHeader',
+                    fillColor: '#3B82F6',
+                    color: 'white',
+                  },
+                ],
+                ...pregunta.respuestas.map((r) => [
+                  r.descripcion,
+                  { text: r.votos.toString(), alignment: 'center' },
+                  {
+                    text: `${r.porcentaje}%`,
+                    alignment: 'center',
+                    bold: true,
+                    color: r.porcentaje > 50 ? '#10B981' : '#6B7280',
+                  },
+                ]),
+              ],
+            },
+            layout: {
+              hLineWidth: (i, node) => (i === 0 || i === node.table.body.length ? 0 : 1),
+              vLineWidth: () => 0,
+              hLineColor: () => '#E5E7EB',
+              paddingLeft: () => 10,
+              paddingRight: () => 10,
+              paddingTop: () => 8,
+              paddingBottom: () => 8,
+            },
+            margin: [0, 0, 0, 5],
+          },
+        ]),
+
+        // Tendencia Temporal
+        {
+          text: 'TENDENCIA TEMPORAL',
+          style: 'sectionHeader',
+          pageBreak: 'before',
+          margin: [0, 0, 0, 15],
+        },
+        {
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                {
+                  stack: [
+                    {
+                      text: 'Primera Respuesta',
+                      style: 'subsectionHeader',
+                      color: '#3B82F6',
+                      margin: [0, 0, 0, 5],
+                    },
+                    {
+                      text: tendenciaTemporal.primerRespuesta
+                        ? new Date(
+                            tendenciaTemporal.primerRespuesta,
+                          ).toLocaleString('es-AR', {
+                            dateStyle: 'full',
+                            timeStyle: 'short',
+                          })
+                        : 'N/A',
+                      fontSize: 10,
+                    },
+                  ],
+                  fillColor: '#EFF6FF',
+                  margin: [15, 15, 15, 15],
+                },
+                {
+                  stack: [
+                    {
+                      text: 'Última Respuesta',
+                      style: 'subsectionHeader',
+                      color: '#10B981',
+                      margin: [0, 0, 0, 5],
+                    },
+                    {
+                      text: tendenciaTemporal.ultimaRespuesta
+                        ? new Date(
+                            tendenciaTemporal.ultimaRespuesta,
+                          ).toLocaleString('es-AR', {
+                            dateStyle: 'full',
+                            timeStyle: 'short',
+                          })
+                        : 'N/A',
+                      fontSize: 10,
+                    },
+                  ],
+                  fillColor: '#ECFDF5',
+                  margin: [15, 15, 15, 15],
+                },
+              ],
+            ],
+          },
+          layout: 'noBorders',
+          margin: [0, 0, 0, 30],
+        },
+
+        // Separador antes del footer
+        {
+          canvas: [
+            {
+              type: 'line',
+              x1: 0,
+              y1: 0,
+              x2: 515,
+              y2: 0,
+              lineWidth: 1,
+              lineColor: '#E5E7EB',
+            },
+          ],
+          margin: [0, 20, 0, 15],
+        },
+
+        // Footer profesional
+        {
+          columns: [
+            {
+              width: '*',
+              text: [
+                {
+                  text: 'Reporte generado el ',
+                  fontSize: 9,
+                  color: '#6B7280',
+                },
+                {
+                  text: new Date().toLocaleString('es-AR', {
+                    dateStyle: 'long',
+                    timeStyle: 'short',
+                  }),
+                  fontSize: 9,
+                  color: '#374151',
+                  bold: true,
+                },
+              ],
+            },
+            {
+              width: 'auto',
+              text: 'Sistema de Encuestas',
+              fontSize: 9,
+              color: '#667EEA',
+              bold: true,
+            },
+          ],
+          margin: [0, 0, 0, 10],
+        },
+        {
+          text: [
+            {
+              text: 'Encuesta: ',
+              fontSize: 8,
+              color: '#6B7280',
+            },
+            {
+              text: encuesta.titulo,
+              fontSize: 8,
+              color: '#374151',
+              bold: true,
+            },
+          ],
+          alignment: 'center',
+          margin: [0, 0, 0, 5],
+        },
+        {
+          text: 'Este documento contiene información confidencial',
+          alignment: 'center',
+          fontSize: 8,
+          color: '#9CA3AF',
+          italics: true,
+        },
+      ],
+      styles: {
+        header: {
+          fontSize: 24,
+          bold: true,
+          letterSpacing: 1,
+        },
+        titleEncuesta: {
+          fontSize: 16,
+          bold: true,
+          letterSpacing: 0.5,
+        },
+        badge: {
+          fontSize: 10,
+          bold: true,
+          margin: [8, 4, 8, 4],
+        },
+        sectionHeader: {
+          fontSize: 16,
+          bold: true,
+          color: '#667EEA',
+          letterSpacing: 0.5,
+        },
+        subsectionHeader: {
+          fontSize: 11,
+          bold: true,
+          color: '#374151',
+        },
+        tableHeader: {
+          fontSize: 10,
+          bold: true,
+          alignment: 'center',
+        },
+        metricNumber: {
+          fontSize: 28,
+          bold: true,
+          margin: [0, 0, 0, 5],
+        },
+        metricLabel: {
+          fontSize: 9,
+          color: '#6B7280',
+        },
+        normalText: {
+          fontSize: 10,
+          color: '#374151',
+        },
+      },
+      defaultStyle: {
+        font: 'Roboto',
+        fontSize: 10,
+        color: '#1F2937',
+        lineHeight: 1.4,
+      },
+      pageMargins: [40, 60, 40, 60],
+    };
+
+    // Crear el PDF
+    const printer = new PdfPrinter(fonts);
+    const pdfDoc = printer.createPdfKitDocument(docDefinition);
+
+    // Convertir el stream a buffer
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      pdfDoc.on('data', (chunk) => chunks.push(chunk));
+      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+      pdfDoc.on('error', reject);
+      pdfDoc.end();
+    });
   }
 }
