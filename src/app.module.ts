@@ -16,6 +16,7 @@ import { RespuestasModule } from './modules/respuestas/respuestas.module';
 import { PreguntasRespondidasModule } from './modules/preguntas-respondidas/preguntas-respondidas.module';
 import { EncuestasActivacionModule } from './modules/encuestas-activacion/encuestas-activacion.module';
 import { BarriosModule } from './modules/barrios/barrios.module';
+import { ReportesModule } from './modules/reportes/reportes.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { BarriosModule } from './modules/barrios/barrios.module';
     PreguntasRespondidasModule,
     EncuestasActivacionModule,
     BarriosModule,
+    ReportesModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
